@@ -3,7 +3,7 @@
 [![go-recipes](https://raw.githubusercontent.com/nikolaydubina/go-recipes/main/badge.svg?raw=true)](https://github.com/nikolaydubina/go-recipes)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikolaydubina/consistentimports)](https://goreportcard.com/report/github.com/nikolaydubina/consistentimports)
 
-Detect inconsistent import aliases. Report import paths and aliases count.
+Report import paths and aliases count when same import path has multiple aliases.
 
 ```bash
 go install github.com/nikolaydubina/consistentimports@latest
