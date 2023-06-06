@@ -13,6 +13,7 @@ import (
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
 
+// Analyzer is inspired by analysis facts example: https://cs.opensource.google/go/x/tools/+/refs/tags/v0.9.3:go/analysis/passes/pkgfact/pkgfact.go
 var Analyzer = &analysis.Analyzer{
 	Name:      "consistentimports",
 	Doc:       "detect inconsistent import aliases, reports import paths and aliases count",
@@ -31,10 +32,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, file := range pass.Files {
 		for _, spec := range file.Imports {
-			// upstream packages
-			var fact pathAliasCountsFact
-			if pass.ImportPackageFact(imported(pass.TypesInfo, spec), &fact) {
-				for k, v := range fact {
+			// merge stats from upstream packages
+			var upfact pathAliasCountsFact
+			if pass.ImportPackageFact(imported(pass.TypesInfo, spec), &upfact) {
+				for k, v := range upfact {
 					pathAliasCount[k] += v
 				}
 			}
@@ -48,7 +49,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				alias = spec.Name.Name
 			}
 
-			if alias == "" {
+			if alias == "" || alias == "_" {
 				continue
 			}
 
@@ -59,10 +60,18 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
+	reportPathAliasCount(pass, pathAliasCount)
+
+	return nil, nil
+}
+
+func reportPathAliasCount(pass *analysis.Pass, pathAliasCount pathAliasCountsFact) {
 	var pathAliasAgg map[string][]aliasCount = map[string][]aliasCount{}
 	for k, v := range pathAliasCount {
 		pathAliasAgg[k[0]] = append(pathAliasAgg[k[0]], aliasCount{Alias: k[1], Count: v})
 	}
+
+	// sort aliases by count for each path from highest to lowest
 	for k := range pathAliasAgg {
 		sort.Slice(pathAliasAgg[k], func(i, j int) bool {
 			ci := pathAliasAgg[k][i].Count
@@ -74,7 +83,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		})
 	}
 
-	// sort paths by aliases count
+	// sort paths by aliases count from highest to lowest
 	pathsByCount := make([]string, 0, len(pathAliasAgg))
 	for k := range pathAliasAgg {
 		pathsByCount = append(pathsByCount, k)
@@ -96,8 +105,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		pass.Reportf(token.NoPos, `%s %s`, path, printPathAliasCount(aliases))
 	}
-
-	return nil, nil
 }
 
 type aliasCount struct {

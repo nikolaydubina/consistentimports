@@ -21,7 +21,6 @@ Example
 -: "k8s.io/api/rbac/v1" rbacv1:4 v1:2
 -: "k8s.io/apimachinery/pkg/runtime" runtime:3 kruntime:1
 -: "k8s.io/api/imagepolicy/v1alpha1" imagepolicyv1alpha1:1 v1alpha1:1
--: "k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis
 ```
 
 ## Alternatives
