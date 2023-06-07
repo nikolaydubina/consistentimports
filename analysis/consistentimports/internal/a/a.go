@@ -7,6 +7,11 @@ import (
 	an "golang.org/x/tools/go/analysis"
 )
 
+//go:generate mockery --name DB
+type DB interface {
+	Get(key string) (an.Analyzer, error)
+}
+
 func A() {
 	fmt.Println(str.Join([]string{"a", "b", "c"}, ","))
 

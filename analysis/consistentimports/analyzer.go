@@ -13,7 +13,8 @@ import (
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
 
-// Analyzer is inspired by analysis facts example: https://cs.opensource.google/go/x/tools/+/refs/tags/v0.9.3:go/analysis/passes/pkgfact/pkgfact.go
+// Analyzer for consistentimports.
+// Inspired by analysis facts example: https://cs.opensource.google/go/x/tools/+/refs/tags/v0.9.3:go/analysis/passes/pkgfact/pkgfact.go
 var Analyzer = &analysis.Analyzer{
 	Name:      "consistentimports",
 	Doc:       "detect inconsistent import aliases, reports import paths and aliases count",
@@ -23,18 +24,29 @@ var Analyzer = &analysis.Analyzer{
 	FactTypes: []analysis.Fact{new(pathAliasCountsFact)},
 }
 
+var skipGeneratedFiles bool
+
+func init() {
+	Analyzer.Flags.BoolVar(&skipGeneratedFiles, "skip-generated", true, `skip generated files`)
+}
+
 type pathAliasCountsFact map[[2]string]uint
+
+func newPathAliasCountsFact() pathAliasCountsFact { return pathAliasCountsFact{} }
 
 func (f *pathAliasCountsFact) AFact() {}
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	var pathAliasCount = pathAliasCountsFact{}
+	pathAliasCount := newPathAliasCountsFact()
 
 	for _, file := range pass.Files {
+		if isFileGenerated(file) && skipGeneratedFiles {
+			continue
+		}
+
 		for _, spec := range file.Imports {
 			// merge stats from upstream packages
-			var upfact pathAliasCountsFact
-			if pass.ImportPackageFact(imported(pass.TypesInfo, spec), &upfact) {
+			if upfact := newPathAliasCountsFact(); pass.ImportPackageFact(imported(pass.TypesInfo, spec), &upfact) {
 				for k, v := range upfact {
 					pathAliasCount[k] += v
 				}
@@ -61,6 +73,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	reportPathAliasCount(pass, pathAliasCount)
+
+	if len(pathAliasCount) > 0 {
+		pass.ExportPackageFact(&pathAliasCount)
+	}
 
 	return nil, nil
 }
