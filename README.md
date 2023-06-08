@@ -42,5 +42,5 @@ One simple heuristic is to check that package and the package it imports match l
 
 ## Appendix B: promotion to linter aggregators
 
-`staticcheck`:
-- `2023-06-08`: proposal raised: https://github.com/dominikh/go-tools/issues/1413
+`staticcheck`
+- `2023-06-08` proposal raised: https://github.com/dominikh/go-tools/issues/1413
