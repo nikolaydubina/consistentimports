@@ -13,6 +13,19 @@ go install github.com/nikolaydubina/consistentimports@latest
 consistentimports ./...
 ```
 
+In example bellow same same import has two alises `passInspect` `!=` `passinspect`. This linter detects that.
+```go
+// apple.go
+import (
+    passInspect "golang.org/x/tools/go/analysis/passes/inspect"
+)
+
+// pear.go
+import (
+    passinspect "golang.org/x/tools/go/analysis/passes/inspect"
+)
+```
+
 Example
 ```
 -: "k8s.io/utils/net" netutils:4 netutil:1
