@@ -24,10 +24,14 @@ var Analyzer = &analysis.Analyzer{
 	FactTypes: []analysis.Fact{new(pathAliasCountsFact)},
 }
 
-var skipGeneratedFiles bool
+var (
+	skipGeneratedFiles bool
+	numPrefixPathSame  uint
+)
 
 func init() {
 	Analyzer.Flags.BoolVar(&skipGeneratedFiles, "skip-generated", true, `skip generated files`)
+	Analyzer.Flags.UintVar(&numPrefixPathSame, "num-prefix-path-same", 3, `number of same prefix segments split by "/" in import path to consider it belonging to same module (e.g. "github.com/user/repo/pkga" matches "github.com/user/repo/pkgb")`)
 }
 
 type pathAliasCountsFact map[[2]string]uint
@@ -39,16 +43,20 @@ func (f *pathAliasCountsFact) AFact() {}
 func run(pass *analysis.Pass) (interface{}, error) {
 	pathAliasCount := newPathAliasCountsFact()
 
+	pkgModuleChecker := PrefixPkgModuleChecker{NumSegments: numPrefixPathSame}
+
 	for _, file := range pass.Files {
 		if isFileGenerated(file) && skipGeneratedFiles {
 			continue
 		}
 
 		for _, spec := range file.Imports {
-			// merge stats from upstream packages
-			if upfact := newPathAliasCountsFact(); pass.ImportPackageFact(imported(pass.TypesInfo, spec), &upfact) {
-				for k, v := range upfact {
-					pathAliasCount[k] += v
+			// merge stats from upstream packages in same module
+			if pkgModuleChecker.IsSameModule(pass.Pkg.Path(), spec.Path.Value) {
+				if upfact := newPathAliasCountsFact(); pass.ImportPackageFact(imported(pass.TypesInfo, spec), &upfact) {
+					for k, v := range upfact {
+						pathAliasCount[k] += v
+					}
 				}
 			}
 
