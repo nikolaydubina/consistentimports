@@ -40,7 +40,7 @@ However, for practical use we really need to narrow down to current module, or e
 
 One simple heuristic is to check that package and the package it imports match long enough prefix.
 
-## Appendix B: promotion to linter aggregators
+## Appendix B: integration to linter aggregators
 
 `staticcheck`
 - `2023-06-08` proposal raised: https://github.com/dominikh/go-tools/issues/1413
