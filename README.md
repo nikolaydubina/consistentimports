@@ -39,3 +39,8 @@ As of `2023-06-08`, there seem to be no way to in `golang.org/x/tools/go/analysi
 However, for practical use we really need to narrow down to current module, or else linter will keep checking recursively way outside of current module.
 
 One simple heuristic is to check that package and the package it imports match long enough prefix.
+
+## Appendix B: promotion to linter aggregators
+
+`staticcheck`:
+- `2023-06-08`: proposal raised: https://github.com/dominikh/go-tools/issues/1413
