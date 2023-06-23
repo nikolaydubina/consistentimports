@@ -2,8 +2,8 @@ package consistentimports
 
 import (
 	"flag"
+	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 	"sort"
 	"strconv"
@@ -27,11 +27,27 @@ var Analyzer = &analysis.Analyzer{
 var (
 	skipGeneratedFiles bool
 	numPrefixPathSame  uint
+
+	res = make(chan pathAliasCountsFact)
 )
 
 func init() {
 	Analyzer.Flags.BoolVar(&skipGeneratedFiles, "skip-generated", true, `skip generated files`)
 	Analyzer.Flags.UintVar(&numPrefixPathSame, "num-prefix-path-same", 3, `number of same prefix segments split by "/" in import path to consider it belonging to same module (e.g. "github.com/user/repo/pkga" matches "github.com/user/repo/pkgb")`)
+
+	go func() {
+		pathAliasCount := newPathAliasCountsFact()
+
+		defer func() {
+			reportPathAliasCount(nil, pathAliasCount)
+		}()
+
+		for v := range res {
+			for k, v := range v {
+				pathAliasCount[k] += v
+			}
+		}
+	}()
 }
 
 type pathAliasCountsFact map[[2]string]uint
@@ -80,10 +96,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
-	reportPathAliasCount(pass, pathAliasCount)
+	//reportPathAliasCount(pass, pathAliasCount)
 
 	if len(pathAliasCount) > 0 {
 		pass.ExportPackageFact(&pathAliasCount)
+		res <- pathAliasCount
 	}
 
 	return nil, nil
@@ -127,7 +144,8 @@ func reportPathAliasCount(pass *analysis.Pass, pathAliasCount pathAliasCountsFac
 		if len(aliases) == 1 {
 			continue
 		}
-		pass.Reportf(token.NoPos, `%s %s`, path, printPathAliasCount(aliases))
+		//pass.Reportf(token.NoPos, `%s %s`, path, printPathAliasCount(aliases))
+		fmt.Printf(`%s %s\n`, path, printPathAliasCount(aliases))
 	}
 }
 
