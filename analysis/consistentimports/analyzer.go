@@ -46,7 +46,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	pkgModuleChecker := PrefixPkgModuleChecker{NumSegments: numPrefixPathSame}
 
 	for _, file := range pass.Files {
-		if isFileGenerated(file) && skipGeneratedFiles {
+		if ast.IsGenerated(file) && skipGeneratedFiles {
 			continue
 		}
 
