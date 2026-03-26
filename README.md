@@ -1,5 +1,9 @@
 ## consistentimports: detect inconsistent import aliases
 
+<p align="center">
+  ✨ Sponsored by <a href="https://apps.apple.com/app/id6738306589">NDX AI Shopping Assistant</a>
+</p>
+
 [![go-recipes](https://raw.githubusercontent.com/nikolaydubina/go-recipes/main/badge.svg?raw=true)](https://github.com/nikolaydubina/go-recipes)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikolaydubina/consistentimports)](https://goreportcard.com/report/github.com/nikolaydubina/consistentimports)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nikolaydubina/consistentimports/badge)](https://securityscorecards.dev/viewer/?uri=github.com/nikolaydubina/consistentimports)
